@@ -11,6 +11,8 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js";
 import { sendEmail } from "../utils/sendEmail.js";
+import { translateToEnglish } from "../utils/issuegemini.js";
+
 
 //  Local createAnalytics function
 const createAnalytics = async (issueId) => {
@@ -62,8 +64,8 @@ const generatePDFWithQR = async (issue, user, filePath, qrBuffer) => {
     doc.text(` Email: ${user.email}`);
     doc.text(` Location: ${issue.location || "N/A"}`);
     doc.moveDown();
-    doc.text(` Title: ${issue.title}`);
-    doc.text(` Description: ${issue.description}`);
+    doc.text(` Title: ${issue.originalTitle}`);aS
+    doc.text(` Description: ${issue.originalDescription}`);
     doc.moveDown();
 
     doc.fontSize(14).text("🔎 Scan QR for Details:", { underline: true });
@@ -93,9 +95,16 @@ const createIssue = asyncHandler(async (req, res) => {
     imageId = uploadedImage.public_id;
   }
 
+  //  Translate using Gemini
+  const translatedTitle = await translateToEnglish(title);
+const translatedDescription = await translateToEnglish(description);
+
+  //  Create issue with original and translated content
   const issue = await Issue.create({
-    title,
-    description,
+    title: translatedTitle,
+    description: translatedDescription,
+    originalTitle: title,
+    originalDescription: description,
     languageId,
     location,
     imageId,
@@ -110,8 +119,8 @@ const createIssue = asyncHandler(async (req, res) => {
   //  QR Code Content
   const qrData = `
 Issue ID: ${issue._id}
-Title: ${issue.title}
-Description: ${issue.description}
+Title: ${issue.originalTitle}
+Description: ${issue.originalDescription}
 Location: ${issue.location}
 Reported By: ${user.username || "N/A"}
 Email: ${user.email}
@@ -137,8 +146,8 @@ Reported At: ${new Date(issue.reportedAt).toLocaleString()}
         <p>Your issue has been successfully reported with the following details:</p>
         <ul>
           <li><strong>Issue ID:</strong> ${issue._id}</li>
-          <li><strong>Title:</strong> ${issue.title}</li>
-          <li><strong>Description:</strong> ${issue.description}</li>
+          <li><strong>Title:</strong> ${issue.originalTitle}</li>
+          <li><strong>Description:</strong> ${issue.originalDescription}</li>
           <li><strong>Location:</strong> ${issue.location || "N/A"}</li>
           <li><strong>Reported At:</strong> ${new Date(issue.reportedAt).toLocaleString()}</li>
         </ul>

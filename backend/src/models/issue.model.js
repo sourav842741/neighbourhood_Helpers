@@ -5,58 +5,74 @@ const issueSchema = new Schema(
     title: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
     },
     description: {
       type: String,
-      required: true
+      required: true,
     },
+    originalTitle: {
+      type: String,
+    },
+    originalDescription: {
+      type: String,
+    },
+
+   translatedTitle: {
+      type: String,
+      default: "",
+    },
+    translatedDescription: {
+      type: String,
+      default: "",
+    },
+
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
-      ref: "User"
+      ref: "User",
     },
+
     status: {
       type: String,
-      required: true,
       enum: ["reported", "verified", "in-progress", "resolved"],
-      default: "reported"
+      default: "reported",
     },
+
     imageId: {
-      type: String, // Could be a Cloudinary ID or URL
-      default: ""
+      type: String, // Cloudinary public_id or URL
+      default: "",
     },
+
     location: {
-      type: String
+      type: String,
+      default: "",
     },
+
     reportedAt: {
       type: Date,
-      default: Date.now
+      default: Date.now,
     },
-    verifiedAt: {
-      type: Date
-    },
-    inProgressAt: {
-      type: Date
-    },
-    resolvedAt: {
-      type: Date
-    },
+    verifiedAt: Date,
+    inProgressAt: Date,
+    resolvedAt: Date,
+
     upvoteCount: {
       type: Number,
-      default: 0
+      default: 0,
     },
     commentCount: {
       type: Number,
-      default: 0
+      default: 0,
     },
+
     languageId: {
       type: String,
-      required: false
-    }
+      default: "en", // e.g., "hi", "ta", "bn", "en"
+    },
   },
   {
-    timestamps: true  
+    timestamps: true,
   }
 );
 
