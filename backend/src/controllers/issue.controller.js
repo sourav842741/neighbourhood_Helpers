@@ -11,10 +11,8 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js";
 import { sendEmail } from "../utils/sendEmail.js";
-import { translateToEnglish } from "../utils/issuegemini.js";
 
-
-//  Local createAnalytics function
+// Local createAnalytics function
 const createAnalytics = async (issueId) => {
   if (!issueId) throw new Error("Issue ID is required for analytics");
   const existing = await Analytics.findOne({ issueId });
@@ -23,7 +21,7 @@ const createAnalytics = async (issueId) => {
   }
 };
 
-//  Nodemailer transporter
+// Nodemailer transporter
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -32,7 +30,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-//  Generate & Upload QR to Cloudinary
+// Generate & Upload QR to Cloudinary
 const generateAndUploadQR = async (qrData) => {
   const qrBuffer = await qr.toBuffer(qrData);
   const tempPath = path.join("public", `qr-${Date.now()}.png`);
@@ -48,7 +46,7 @@ const generateAndUploadQR = async (qrData) => {
   return uploaded.secure_url;
 };
 
-//  Generate PDF with QR
+// Generate PDF with QR
 const generatePDFWithQR = async (issue, user, filePath, qrBuffer) => {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument();
@@ -58,14 +56,14 @@ const generatePDFWithQR = async (issue, user, filePath, qrBuffer) => {
     doc.fontSize(20).fillColor("#d32f2f").text("🚨 Issue Report", { align: "center" });
     doc.moveDown();
 
-    doc.fontSize(12).fillColor("black").text(` Reference ID: ${issue._id}`);
-    doc.text(` Reported At: ${new Date(issue.reportedAt).toLocaleString()}`);
-    doc.text(` Reported By: ${user.username}`);
-    doc.text(` Email: ${user.email}`);
-    doc.text(` Location: ${issue.location || "N/A"}`);
+    doc.fontSize(12).fillColor("black").text(`Reference ID: ${issue._id}`);
+    doc.text(`Reported At: ${new Date(issue.reportedAt).toLocaleString()}`);
+    doc.text(`Reported By: ${user.username}`);
+    doc.text(`Email: ${user.email}`);
+    doc.text(`Location: ${issue.location || "N/A"}`);
     doc.moveDown();
-    doc.text(` Title: ${issue.originalTitle}`);
-    doc.text(` Description: ${issue.originalDescription}`);
+    doc.text(`Title: ${issue.title}`);
+    doc.text(`Description: ${issue.description}`);
     doc.moveDown();
 
     doc.fontSize(14).text("🔎 Scan QR for Details:", { underline: true });
@@ -77,7 +75,7 @@ const generatePDFWithQR = async (issue, user, filePath, qrBuffer) => {
   });
 };
 
-//  Create Issue
+// Create Issue
 const createIssue = asyncHandler(async (req, res) => {
   const { title, description, languageId, location } = req.body;
   if (!title || !description || !languageId) {
@@ -95,16 +93,9 @@ const createIssue = asyncHandler(async (req, res) => {
     imageId = uploadedImage.public_id;
   }
 
-  //  Translate using Gemini
-  const translatedTitle = await translateToEnglish(title);
-const translatedDescription = await translateToEnglish(description);
-
-  //  Create issue with original and translated content
   const issue = await Issue.create({
-    title: translatedTitle,
-    description: translatedDescription,
-    originalTitle: title,
-    originalDescription: description,
+    title,
+    description,
     languageId,
     location,
     imageId,
@@ -113,29 +104,29 @@ const translatedDescription = await translateToEnglish(description);
     reportedAt: new Date()
   });
 
-  //  Analytics Entry
+  // Analytics Entry
   await createAnalytics(issue._id);
 
-  //  QR Code Content
+  // QR Code Content
   const qrData = `
 Issue ID: ${issue._id}
-Title: ${issue.originalTitle}
-Description: ${issue.originalDescription}
+Title: ${issue.title}
+Description: ${issue.description}
 Location: ${issue.location}
 Reported By: ${user.username || "N/A"}
 Email: ${user.email}
 Reported At: ${new Date(issue.reportedAt).toLocaleString()}
-  `;
+`;
 
-  //  Upload QR for Gmail
+  // Upload QR for Gmail
   const qrUrl = await generateAndUploadQR(qrData);
 
-  //  Generate PDF with QR
+  // Generate PDF with QR
   const qrBuffer = await qr.toBuffer(qrData);
   const pdfPath = path.join("public", `issue-${issue._id}.pdf`);
   await generatePDFWithQR(issue, user, pdfPath, qrBuffer);
 
-  //  Send Email
+  // Send Email
   await sendEmail({
     to: user.email,
     subject: "📝 Your Issue Report Receipt",
@@ -146,8 +137,8 @@ Reported At: ${new Date(issue.reportedAt).toLocaleString()}
         <p>Your issue has been successfully reported with the following details:</p>
         <ul>
           <li><strong>Issue ID:</strong> ${issue._id}</li>
-          <li><strong>Title:</strong> ${issue.originalTitle}</li>
-          <li><strong>Description:</strong> ${issue.originalDescription}</li>
+          <li><strong>Title:</strong> ${issue.title}</li>
+          <li><strong>Description:</strong> ${issue.description}</li>
           <li><strong>Location:</strong> ${issue.location || "N/A"}</li>
           <li><strong>Reported At:</strong> ${new Date(issue.reportedAt).toLocaleString()}</li>
         </ul>
@@ -166,7 +157,7 @@ Reported At: ${new Date(issue.reportedAt).toLocaleString()}
     ],
   });
 
-  //  Clean up PDF
+  // Clean up PDF
   fs.unlink(pdfPath, (err) => {
     if (err) console.error("Failed to delete PDF:", err);
   });
@@ -174,6 +165,7 @@ Reported At: ${new Date(issue.reportedAt).toLocaleString()}
   res.status(201).json(new ApiResponse(201, issue, "Issue reported and emailed successfully"));
 });
 
+// Get All Issues
 const getAllIssues = asyncHandler(async (req, res) => {
   const issues = await Issue.find()
     .populate("userId", "username email")
@@ -184,60 +176,49 @@ const getAllIssues = asyncHandler(async (req, res) => {
   );
 });
 
+// Get Single Issue by ID
 const getIssueById = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  const issue = await Issue.findById(id)
-    .populate("userId", "username email");
-
-  if (!issue) {
-    throw new ApiError(404, "Issue not found");
-  }
+  const issue = await Issue.findById(id).populate("userId", "username email");
+  if (!issue) throw new ApiError(404, "Issue not found");
 
   res.status(200).json(new ApiResponse(200, issue, "Issue details"));
 });
 
+// Update Issue
 const updateIssue = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   const issue = await Issue.findById(id);
-  if (!issue) {
-    throw new ApiError(404, "Issue not found");
-  }
+  if (!issue) throw new ApiError(404, "Issue not found");
 
   if (issue.userId.toString() !== req.user._id.toString()) {
     throw new ApiError(403, "You are not authorized to update this issue");
   }
 
-    // Handle image update
   if (req.file) {
-      // Delete old image from Cloudinary
     if (issue.imageId) {
       await deleteFromCloudinary(issue.imageId);
     }
 
     const uploadedImage = await uploadOnCloudinary(req.file.path);
-    if (!uploadedImage) {
-      throw new ApiError(500, "New image upload failed");
-    }
+    if (!uploadedImage) throw new ApiError(500, "New image upload failed");
     issue.imageId = uploadedImage.public_id;
   }
 
   Object.assign(issue, req.body);
   await issue.save();
 
-  res.status(200).json(
-    new ApiResponse(200, issue, "Issue updated successfully")
-  );
+  res.status(200).json(new ApiResponse(200, issue, "Issue updated successfully"));
 });
 
+// Delete Issue
 const deleteIssue = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   const issue = await Issue.findById(id);
-  if (!issue) {
-    throw new ApiError(404, "Issue not found");
-  }
+  if (!issue) throw new ApiError(404, "Issue not found");
 
   if (issue.userId.toString() !== req.user._id.toString()) {
     throw new ApiError(403, "You are not authorized to delete this issue");
@@ -247,14 +228,10 @@ const deleteIssue = asyncHandler(async (req, res) => {
     await deleteFromCloudinary(issue.imageId);
   }
 
-  //  Delete analytics entry when issue is deleted
   await Analytics.deleteOne({ issueId: issue._id });
-
   await issue.deleteOne();
 
-  res.status(200).json(
-    new ApiResponse(200, null, "Issue deleted successfully")
-  );
+  res.status(200).json(new ApiResponse(200, null, "Issue deleted successfully"));
 });
 
 export {
