@@ -64,7 +64,7 @@ const generatePDFWithQR = async (issue, user, filePath, qrBuffer) => {
     doc.text(` Email: ${user.email}`);
     doc.text(` Location: ${issue.location || "N/A"}`);
     doc.moveDown();
-    doc.text(` Title: ${issue.originalTitle}`);aS
+    doc.text(` Title: ${issue.originalTitle}`);
     doc.text(` Description: ${issue.originalDescription}`);
     doc.moveDown();
 
