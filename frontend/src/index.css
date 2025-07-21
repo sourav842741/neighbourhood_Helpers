@@ -1,1 +1,7 @@
 @import "tailwindcss";
+@import '@fortawesome/fontawesome-svg-core/styles.css';
+
+
+body {
+  @apply font-sans;
+}
