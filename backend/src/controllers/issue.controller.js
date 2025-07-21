@@ -130,25 +130,34 @@ Reported At: ${new Date(issue.reportedAt).toLocaleString()}
   await sendEmail({
     to: user.email,
     subject: "📝 Your Issue Report Receipt",
-    html: `
-      <div style="font-family: Arial, sans-serif; line-height: 1.5; padding: 10px;">
-        <h2 style="color: #d32f2f;">🚨 Issue Report Confirmation</h2>
-        <p>Hello <strong>${user.username}</strong>,</p>
-        <p>Your issue has been successfully reported with the following details:</p>
-        <ul>
-          <li><strong>Issue ID:</strong> ${issue._id}</li>
-          <li><strong>Title:</strong> ${issue.title}</li>
-          <li><strong>Description:</strong> ${issue.description}</li>
-          <li><strong>Location:</strong> ${issue.location || "N/A"}</li>
-          <li><strong>Reported At:</strong> ${new Date(issue.reportedAt).toLocaleString()}</li>
-        </ul>
-        <p><strong>🔎 Scan the QR Code below for reference:</strong></p>
-        <img src="${qrUrl}" alt="QR Code" width="150" height="150" style="border:1px solid #ccc; padding:5px;" />
-        <p>The attached PDF also includes this QR code.</p>
-        <br/>
-        <p style="color: grey; font-size: 12px;">This is an automated email from Neighborhood Helper. Please do not reply.</p>
+   html: `
+  <div style="font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f4f4; padding: 30px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); overflow: hidden;">
+      <div style="background-color: #d32f2f; padding: 20px; text-align: center; color: white;">
+        <h2 style="margin: 0;">🚨 Issue Report Confirmation</h2>
       </div>
-    `,
+      <div style="padding: 30px;">
+        <p style="font-size: 16px; color: #333;">Hello <strong>${user.username}</strong>,</p>
+        <p style="font-size: 15px; color: #444;">Your issue has been successfully reported with the following details:</p>
+        <ul style="list-style: none; padding-left: 0; color: #333; font-size: 15px;">
+          <li style="margin-bottom: 8px;"><strong>🆔 Issue ID:</strong> ${issue._id}</li>
+          <li style="margin-bottom: 8px;"><strong>📝 Title:</strong> ${issue.title}</li>
+          <li style="margin-bottom: 8px;"><strong>📄 Description:</strong> ${issue.description}</li>
+          <li style="margin-bottom: 8px;"><strong>📍 Location:</strong> ${issue.location || "N/A"}</li>
+          <li style="margin-bottom: 8px;"><strong>📅 Reported At:</strong> ${new Date(issue.reportedAt).toLocaleString()}</li>
+        </ul>
+        <div style="margin: 20px 0; text-align: center;">
+          <p style="font-size: 15px; font-weight: bold; color: #333;">🔎 Scan the QR Code below for reference:</p>
+          <img src="${qrUrl}" alt="QR Code" width="150" height="150" style="border: 1px solid #ccc; border-radius: 8px; padding: 5px;" />
+          <p style="font-size: 14px; color: #555;">(The attached PDF also includes this QR code.)</p>
+        </div>
+        <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+        <p style="font-size: 13px; color: #888; text-align: center;">This is an automated email from <strong>Neighborhood Helper</strong>. Please do not reply.</p>
+      </div>
+    </div>
+  </div>
+`,
+
     attachments: [
       {
         filename: `Issue_Report_${issue._id}.pdf`,

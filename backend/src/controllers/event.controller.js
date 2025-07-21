@@ -31,27 +31,51 @@ export const createEvent = asyncHandler(async (req, res) => {
   await sendEmail({
     to: recipients,
     subject: `📢 New Event: ${event.name}`,
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 0; background-color: #ffffff; border: 1px solid #e9ecef; border-radius: 10px; overflow: hidden;">
-        <div style="background-color: #1e90ff; padding: 20px; text-align: center;">
-          <h1 style="color: white; margin-top: 10px;">Neighborhood Helper</h1>
-        </div>
-        <img src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?fit=crop&w=600&q=80" alt="Event" style="width: 100%; height: auto;">
-        <div style="padding: 20px;">
-          <h2 style="color: #2c3e50;">📅 ${event.name}</h2>
-          <p style="color: #34495e; font-size: 16px;">
-            ${event.description || "No description provided."}
-          </p>
-          <hr style="border: none; border-top: 1px solid #dee2e6; margin: 20px 0;">
-          <p style="font-size: 15px; color: #2f3542;"><strong>📍 Location:</strong> ${event.location || "To be decided"}</p>
-          <p style="font-size: 15px; color: #2f3542;"><strong>🕒 Time:</strong> ${new Date(event.startTime).toLocaleString()} - ${new Date(event.endTime).toLocaleString()}</p>
-          <div style="margin-top: 30px; text-align: center;">
-            <a href="#" style="padding: 12px 25px; background-color: #1e90ff; color: #fff; text-decoration: none; font-weight: bold; border-radius: 5px;">View Event</a>
-          </div>
-          <p style="margin-top: 30px; font-size: 12px; color: #6c757d;">You received this email because you're part of the Neighborhood Helper community. Please do not reply directly to this message.</p>
-        </div>
+   html: `
+  <div style="font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f6f8; padding: 30px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);">
+      
+      <!-- Header -->
+      <div style="background-color: #1e90ff; padding: 24px 20px; text-align: center;">
+        <h1 style="margin: 0; color: white; font-size: 28px;">Neighborhood Helper</h1>
       </div>
-    `,
+
+      <!-- Banner Image -->
+      <img src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?fit=crop&w=600&q=80" 
+           alt="Event" 
+           style="width: 100%; height: auto; display: block;" />
+
+      <!-- Content -->
+      <div style="padding: 25px 30px;">
+        <h2 style="color: #2c3e50; font-size: 22px; margin-top: 0;">📅 ${event.name}</h2>
+        <p style="color: #444; font-size: 16px; margin: 10px 0 20px;">
+          ${event.description || "No description provided."}
+        </p>
+
+        <!-- Details -->
+        <div style="color: #2f3542; font-size: 15px; line-height: 1.6;">
+          <p><strong>📍 Location:</strong> ${event.location || "To be decided"}</p>
+          <p><strong>🕒 Time:</strong> ${new Date(event.startTime).toLocaleString()} - ${new Date(event.endTime).toLocaleString()}</p>
+        </div>
+
+        <!-- CTA Button -->
+        <div style="margin: 30px 0; text-align: center;">
+          <a href="#" 
+             style="padding: 12px 25px; background-color: #1e90ff; color: white; text-decoration: none; font-weight: 600; font-size: 15px; border-radius: 6px; display: inline-block;">
+            View Event
+          </a>
+        </div>
+
+        <!-- Footer -->
+        <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+        <p style="font-size: 13px; color: #888888; text-align: center; margin: 0;">
+          You're receiving this because you're part of the <strong>Neighborhood Helper</strong> community. Please do not reply to this message.
+        </p>
+      </div>
+    </div>
+  </div>
+`,
+
   });
 
   res.status(201).json(new ApiResponse(201, event, "Event created and notifications sent"));

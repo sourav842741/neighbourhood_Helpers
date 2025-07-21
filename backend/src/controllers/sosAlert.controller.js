@@ -48,21 +48,34 @@ export const sendSOSAlert = asyncHandler(async (req, res) => {
   if (isNew) {
     const adminEmails = await getAdminEmails();
 
-    const mailOptions = {
-      from: `"Neighborhood Helper" <${process.env.EMAIL_USER}>`,
-      to: adminEmails,
-      subject: "🚨 SOS Alert from User",
-      html: `
-        <div style="font-family: sans-serif; padding: 20px; background: #fff; border: 1px solid #eee;">
-          <h2 style="color: red;">🚨 Emergency SOS Alert</h2>
-          <p><strong>User:</strong> ${req.user.fullName}</p>
-          <p><strong>Email:</strong> ${req.user.email}</p>
-          <p><strong>Location:</strong> ${location}</p>
-          <p><strong>Message:</strong> ${message || "I need immediate help!"}</p>
-          <p style="font-size: 12px; color: gray;">📅 Sent at ${new Date().toLocaleString()}</p>
+  const mailOptions = {
+  from: `"Neighborhood Helper" <${process.env.EMAIL_USER}>`,
+  to: adminEmails,
+  subject: "🚨 SOS Alert from User",
+  html: `
+    <div style="font-family: 'Segoe UI', sans-serif; background-color: #f4f4f4; padding: 20px;">
+      <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+        <div style="background-color: #d32f2f; color: white; padding: 20px; text-align: center;">
+          <h2 style="margin: 0;">🚨 Emergency SOS Alert</h2>
         </div>
-      `,
-    };
+        <div style="padding: 30px;">
+          <p style="font-size: 16px; color: #333;"><strong>🚶‍♂️ User:</strong> ${req.user.fullName}</p>
+          <p style="font-size: 16px; color: #333;"><strong>📧 Email:</strong> ${req.user.email}</p>
+          <p style="font-size: 16px; color: #333;"><strong📍 Location:</strong> ${location}</p>
+          <p style="font-size: 16px; color: #333;"><strong>💬 Message:</strong> ${message || "I need immediate help!"}</p>
+          <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+          <p style="text-align: center; color: #999; font-size: 14px;">
+            📅 Sent on <strong>${new Date().toLocaleString()}</strong>
+          </p>
+        </div>
+        <div style="background-color: #f9f9f9; text-align: center; padding: 15px; font-size: 12px; color: #888;">
+          &copy; ${new Date().getFullYear()} Neighborhood Helper. Stay safe!
+        </div>
+      </div>
+    </div>
+  `,
+};
+
 
     await transporter.sendMail(mailOptions);
   }

@@ -98,13 +98,38 @@ const registerUser = asyncHandler(async (req, res) => {
 
   // Email Content
   const htmlContent = `
-    <div style="font-family: Arial, sans-serif; padding: 20px;">
-      <h2 style="color: #4CAF50;">Neighborhood Helper</h2>
-      <p>Your verification OTP is:</p>
-      <h3 style="color: #333;">${otp}</h3>
-      <p>This OTP will expire in 10 minutes.</p>
+  <div style="font-family: 'Segoe UI', sans-serif; background-color: #f4f4f4; padding: 20px;">
+    <div style="max-width: 600px; margin: auto; background: #ffffff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden;">
+      
+      <div style="background-color: #ff6b00; padding: 20px; text-align: center;">
+        <h2 style="color: white; margin: 0;">My Neighborhood Helper</h2>
+      </div>
+
+      <div style="padding: 30px;">
+        <h3 style="color: #333333;">🔐 Email Verification</h3>
+        <p style="color: #555;">Thank you for signing up! Use the OTP below to verify your email address:</p>
+
+        <div style="text-align: center; margin: 20px 0;">
+          <div style="display: inline-block; padding: 12px 24px; font-size: 24px; font-weight: bold; background-color: #f2f2f2; border: 1px dashed #ccc; border-radius: 6px; color: #ff6b00;">
+            ${otp}
+          </div>
+        </div>
+
+        <p style="color: #888; font-size: 14px; text-align: center;">
+          This OTP will expire in <strong>10 minutes</strong>.
+        </p>
+
+        <p style="font-size: 13px; color: #999; margin-top: 30px;">Didn’t request this? Just ignore this email.</p>
+      </div>
+
+      <div style="background-color: #fafafa; text-align: center; padding: 15px; font-size: 12px; color: #999;">
+        &copy; ${new Date().getFullYear()} My Neighborhood Helper. All rights reserved.
+      </div>
+
     </div>
-  `;
+  </div>
+`;
+
 
   // Send email
   await sendEmail({
@@ -119,6 +144,80 @@ const registerUser = asyncHandler(async (req, res) => {
     .status(201)
     .json(new ApiResponse(201, createdUser, "User registered successfully. Please verify your email."));
 });
+
+const resendOTP = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    throw new ApiError(400, "Email is required to resend OTP");
+  }
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    throw new ApiError(404, "User with this email does not exist");
+  }
+
+  if (user.isVerified) {
+    throw new ApiError(400, "Email is already verified");
+  }
+
+  // Delete existing OTPs for the email
+  await OTP.deleteMany({ email });
+
+  // Generate new OTP
+  const otp = otpGenerator.generate(6, {
+    digits: true,
+    alphabets: false,
+    upperCase: false,
+    specialChars: false,
+  });
+
+  // Save new OTP
+  await OTP.create({
+    email,
+    otp,
+    expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+    verified: false,
+  });
+
+  // Prepare email HTML content
+  const htmlContent = `
+    <div style="font-family: 'Segoe UI', sans-serif; background-color: #f4f4f4; padding: 20px;">
+      <div style="max-width: 600px; margin: auto; background: #ffffff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden;">
+        <div style="background-color: #ff6b00; padding: 20px; text-align: center;">
+          <h2 style="color: white; margin: 0;">My Neighborhood Helper</h2>
+        </div>
+        <div style="padding: 30px;">
+          <h3 style="color: #333333;">🔄 Resend OTP</h3>
+          <p style="color: #555;">Here is your new OTP to verify your email address:</p>
+          <div style="text-align: center; margin: 20px 0;">
+            <div style="display: inline-block; padding: 12px 24px; font-size: 24px; font-weight: bold; background-color: #f2f2f2; border: 1px dashed #ccc; border-radius: 6px; color: #ff6b00;">
+              ${otp}
+            </div>
+          </div>
+          <p style="color: #888; font-size: 14px; text-align: center;">
+            This OTP will expire in <strong>10 minutes</strong>.
+          </p>
+        </div>
+        <div style="background-color: #fafafa; text-align: center; padding: 15px; font-size: 12px; color: #999;">
+          &copy; ${new Date().getFullYear()} My Neighborhood Helper. All rights reserved.
+        </div>
+      </div>
+    </div>
+  `;
+
+  await sendEmail({
+    to: email,
+    subject: "🔄 Resend OTP - Neighborhood Helper",
+    html: htmlContent,
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "OTP has been resent successfully"));
+});
+
 
 
 const loginUser = asyncHandler(async (req, res) => {
@@ -443,4 +542,5 @@ export {
   updateUserRole,
   deleteUser,
   getAllUsersTeamRole,
+   resendOTP,
 };
