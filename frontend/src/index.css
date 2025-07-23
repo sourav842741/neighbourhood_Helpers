@@ -1,7 +1,8 @@
 @import "tailwindcss";
 @import '@fortawesome/fontawesome-svg-core/styles.css';
+@import 'react-toastify/dist/ReactToastify.css';
 
 
-body {
+/* body {
   @apply font-sans;
-}
+} */
