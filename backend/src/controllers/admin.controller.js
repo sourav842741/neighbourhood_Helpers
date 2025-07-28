@@ -7,6 +7,12 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 export const registerAdmin = asyncHandler(async (req, res) => {
   const { fullName, email, password } = req.body;
 
+  // Restrict to specific admin email
+  const allowedAdminEmail = process.env.ALLOWED_ADMIN_EMAIL;
+  if (email !== allowedAdminEmail) {
+    throw new ApiError(403, "This email is not authorized to register as admin");
+  }
+
   const existingAdmin = await Admin.findOne({ email });
   if (existingAdmin) {
     throw new ApiError(400, "Admin already exists");
@@ -21,9 +27,16 @@ export const registerAdmin = asyncHandler(async (req, res) => {
   });
 });
 
+
 // Login Admin with cookies (access + refresh tokens)
 export const loginAdmin = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
+
+  // Restrict to specific admin email
+  const allowedAdminEmail = process.env.ALLOWED_ADMIN_EMAIL;
+  if (email !== allowedAdminEmail) {
+    throw new ApiError(403, "This email is not authorized to login as admin");
+  }
 
   const admin = await Admin.findOne({ email });
   if (!admin || !(await admin.isPasswordCorrect(password))) {
@@ -36,13 +49,14 @@ export const loginAdmin = asyncHandler(async (req, res) => {
   admin.refreshToken = refreshToken;
   await admin.save();
 
-  res
-    .cookie("admin_token", accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "Strict",
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-    })
+  res.cookie("admin_token", accessToken, {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production" ? true : false,
+  sameSite: "Lax", // ✅ better than "Strict" for most flows
+  path: "/",       // ✅ ensures it's accessible across routes
+  maxAge: 24 * 60 * 60 * 1000, // 1 day
+})
+
     .status(200)
     .json({
       success: true,
@@ -55,6 +69,7 @@ export const loginAdmin = asyncHandler(async (req, res) => {
       },
     });
 });
+
 
 // Logout Admin
 export const logoutAdmin = asyncHandler(async (req, res) => {
@@ -112,4 +127,12 @@ export const getAdminEmails = async () => {
 
   return admins.map(admin => admin.email);
 };
+
+export const getAdminProfile = asyncHandler(async (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Admin authenticated",
+    admin: req.admin,
+  });
+});
 
