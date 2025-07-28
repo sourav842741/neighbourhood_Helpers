@@ -40,7 +40,7 @@ const Register = () => {
     try {
       const data = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
-        data.append(key, value);
+        if (value) data.append(key, value); // 👈 Only append if value exists (skip null)
       });
 
       const res = await axios.post(
@@ -131,7 +131,7 @@ const Register = () => {
             <input
               type="text"
               name="team_role"
-              placeholder="Team Role"
+              placeholder="Team Role (e.g. user)"
               className="w-full pl-10 pr-4 py-3 rounded-xl bg-orange-50 focus:ring-2 ring-orange-300 border border-orange-200 text-gray-800"
               onChange={handleChange}
               required
@@ -151,7 +151,7 @@ const Register = () => {
             />
           </div>
 
-          {/* Cover Image Upload */}
+          {/* Cover Image Upload (optional) */}
           <div className="relative">
             <FiUploadCloud className="absolute top-3.5 left-3 text-orange-500" />
             <input
@@ -160,6 +160,7 @@ const Register = () => {
               accept="image/*"
               onChange={handleChange}
               className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-orange-50 border border-orange-200 text-gray-700 cursor-pointer"
+              placeholder="Optional Cover Image"
             />
           </div>
 

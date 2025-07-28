@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import { FiMail, FiLock } from "react-icons/fi";
+import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 import 'react-toastify/dist/ReactToastify.css';
 
 const Login = () => {
   const [email, setEmail] = useState("");        
   const [password, setPassword] = useState("");  
+  const [showPassword, setShowPassword] = useState(false); // 👁️ toggle
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -28,10 +30,10 @@ const Login = () => {
         localStorage.setItem("accessToken", accessToken);
         localStorage.setItem("userId", user._id);
 
-        toast.success("Login successful!");
-        setTimeout(() => {
-          navigate("/");
-        }, 1000);
+         toast.success("Login successful!");
+  setTimeout(() => {
+    navigate("/user/dashboard");
+  }, 1000);
       } else {
         toast.error("Something went wrong!");
       }
@@ -70,13 +72,19 @@ const Login = () => {
           <div className="relative">
             <FiLock className="absolute top-3.5 left-3 text-orange-500" />
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full pl-10 pr-4 py-3 rounded-xl bg-orange-50 focus:ring-2 ring-orange-300 border border-orange-200 text-gray-800"
+              className="w-full pl-10 pr-10 py-3 rounded-xl bg-orange-50 focus:ring-2 ring-orange-300 border border-orange-200 text-gray-800"
             />
+            <div
+              className="absolute right-3 top-3.5 text-orange-500 cursor-pointer"
+              onClick={() => setShowPassword(prev => !prev)}
+            >
+              {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
+            </div>
           </div>
 
           <button
@@ -87,6 +95,17 @@ const Login = () => {
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
+
+        {/* 👇 Register Link */}
+        <div className="text-sm text-center mt-5 text-gray-700">
+          Don't have an account?{" "}
+          <Link
+            to="/register"
+            className="text-orange-600 hover:underline font-semibold"
+          >
+            Register
+          </Link>
+        </div>
       </div>
     </div>
   );

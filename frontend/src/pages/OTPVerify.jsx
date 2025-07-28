@@ -56,7 +56,7 @@ const OTPVerify = () => {
       });
 
       toast.success(res.data.message || "OTP Verified");
-      setTimeout(() => navigate("/login"), 1500);
+     setTimeout(() => navigate("/dashboard"), 1500);
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.message || "Invalid OTP or Verification Failed!");

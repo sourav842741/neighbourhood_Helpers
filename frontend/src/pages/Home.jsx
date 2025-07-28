@@ -1,13 +1,27 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import phoneImage from '../assets/road.jpg';
 import phoneImage2 from '../assets/Elect.jpg';
 
 const Home = () => {
+  const [isAdminMode, setIsAdminMode] = useState(false);
+
+  // Enable admin mode with secret key: Ctrl + Alt + A
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      if (e.ctrlKey && e.altKey && e.key.toLowerCase() === 'a') {
+        setIsAdminMode(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, []);
+
   return (
     <>
-      <Navbar />
+      <Navbar isAdminMode={isAdminMode} />
       <main className="flex flex-col md:flex-row items-center justify-center min-h-[calc(100vh-10rem)] px-8 py-16 max-w-7xl mx-auto mt-10">
         {/* Left side content */}
         <section className="md:w-1/2 space-y-6">
@@ -24,10 +38,7 @@ const Home = () => {
 
         {/* Right side content */}
         <section className="md:w-1/2 relative mt-12 md:mt-0 flex justify-center items-center space-x-6">
-          {/* Large colored circle */}
           <div className="w-96 h-96 bg-orange-400 rounded-full absolute top-1/2 left-1/2 transform -translate-y-1/2 -translate-x-1/2 z-0"></div>
-
-          {/* Phone images placeholders */}
           <div className="relative z-10 flex space-x-6">
             <div className="w-40 h-80 bg-white rounded-3xl shadow-lg transform -rotate-12 flex items-center justify-center">
               <img src={phoneImage} alt="Phone 1" className="w-full h-full object-cover rounded-3xl" />
