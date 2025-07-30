@@ -16,70 +16,66 @@ import AdminDashboard from "./components/AdminDashboard";
 // Auth Context
 import { useAuth } from "./authContext";
 import UserDashboard from "./components/UserDashboard";
+import UserProfile from "./components/UserProfile";
 
 const ProjectRoutes = () => {
   const { currentUser, setCurrentUser } = useAuth();
   const navigate = useNavigate();
 
   const [adminAuthenticated, setAdminAuthenticated] = useState(null); // null = checking
+useEffect(() => {
+  const userIdFromStorage = localStorage.getItem("userId");
+  const accessToken = localStorage.getItem("accessToken");
+  const currentPath = window.location.pathname;
 
-  useEffect(() => {
-    const userIdFromStorage = localStorage.getItem("userId");
-    const currentPath = window.location.pathname;
-    const publicPaths = [
-      "/", "/login", "/register", "/verify-otp",
-      "/admin/login", "/admin/register"
-    ];
-    const isAdminPath = currentPath.startsWith("/admin");
+  const publicPaths = [
+    "/", "/login", "/register", "/verify-otp",
+    "/admin/login", "/admin/register"
+  ];
+  const isAdminPath = currentPath.startsWith("/admin");
 
-    // Set current user from localStorage
-    if (userIdFromStorage && !currentUser) {
-      setCurrentUser(userIdFromStorage);
+  if (userIdFromStorage && !currentUser) {
+    setCurrentUser(userIdFromStorage);
+  }
+
+  // Admin check
+  const checkAdminAuth = async () => {
+    try {
+      const res = await axios.get("http://localhost:8000/api/v1/admin/me", {
+        withCredentials: true,
+      });
+      setAdminAuthenticated(true);
+    } catch (err) {
+      setAdminAuthenticated(false);
     }
+  };
+  if (isAdminPath) checkAdminAuth();
 
-    //  Admin check: call backend /admin/me
-    const checkAdminAuth = async () => {
-      try {
-        const res = await axios.get("http://localhost:8000/api/v1/admin/me", {
-          withCredentials: true,
-        });
-        setAdminAuthenticated(true); //  verified from backend
-      } catch (err) {
-        setAdminAuthenticated(false);
-      }
-    };
+  //  Redirect to login if not logged in
+  if (!userIdFromStorage && !isAdminPath && !publicPaths.includes(currentPath)) {
+    navigate("/login");
+  }
 
-    // Call admin auth only if on admin route
-    if (isAdminPath) {
-      checkAdminAuth();
-    }
+  //  If logged in + access token, redirect to dashboard
+  if (
+    userIdFromStorage &&
+    accessToken &&
+    ["/", "/login", "/register", "/verify-otp"].includes(currentPath)
+  ) {
+    navigate("/user/dashboard");
+  }
 
-    // User protected route check
-    if (!userIdFromStorage && !isAdminPath && !publicPaths.includes(currentPath)) {
-      navigate("/login");
-    }
+}, [currentUser, navigate, setCurrentUser]);
 
-    // User logged in but trying to access login/register/verify
-    if (
-      userIdFromStorage &&
-      ["/login", "/register", "/verify-otp"].includes(currentPath)
-    ) {
-      navigate("/");
-    }
 
-    // For now, let admin/dashboard check run after auth status is fetched (below)
-  }, [currentUser, navigate, setCurrentUser]);
 
-  //  Second effect to handle admin redirect after checking
   useEffect(() => {
     const currentPath = window.location.pathname;
 
-    // If checking is not done yet, do nothing
     if (adminAuthenticated === null) return;
 
     const publicAdminPaths = ["/admin/login", "/admin/register"];
 
-    // Admin trying to access protected dashboard without auth
     if (
       currentPath.startsWith("/admin") &&
       !adminAuthenticated &&
@@ -88,7 +84,7 @@ const ProjectRoutes = () => {
       navigate("/admin/login");
     }
 
-    // Admin already authenticated but on login/register page
+  
     if (
       adminAuthenticated &&
       publicAdminPaths.includes(currentPath)
@@ -110,6 +106,8 @@ const ProjectRoutes = () => {
     { path: "/admin/register", element: <AdminRegister /> },
     { path: "/admin/dashboard", element: <AdminDashboard /> },
     { path: "/user/dashboard", element: currentUser ? <UserDashboard/> : <Login /> },
+    { path: "/profile", element: <UserProfile/> },
+    
 
   ]);
 
