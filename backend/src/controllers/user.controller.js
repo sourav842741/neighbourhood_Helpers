@@ -8,9 +8,7 @@ import { OTP } from "../models/otp.model.js";
 import otpGenerator from "otp-generator";
 import { sendEmail } from "../utils/sendEmail.js";
 import mongoose from "mongoose";
-
-
-
+import bcrypt from "bcrypt";
 
 
 const generateAccessAndRefereshTokens = async (userId) => {
@@ -91,13 +89,14 @@ const registerUser = asyncHandler(async (req, res) => {
     specialChars: false,
   });
 
+  const hashedOtp = await bcrypt.hash(otp, 10);
   // Save OTP in DB
-  await OTP.create({
-    email,
-    otp,
-    expiresAt: new Date(Date.now() + 10 * 60 * 1000), 
-    verified: false,
-  });
+ await OTP.create({
+  email,
+  otp: hashedOtp,
+  expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+  verified: false,
+});
 
   // Email Content
   const htmlContent = `
@@ -175,11 +174,13 @@ const resendOTP = asyncHandler(async (req, res) => {
     upperCase: false,
     specialChars: false,
   });
+// Hash the OTP
+  const hashedOtp = await bcrypt.hash(otp, 10);
 
-  // Save new OTP
+  // Save hashed OTP
   await OTP.create({
     email,
-    otp,
+    otp: hashedOtp,
     expiresAt: new Date(Date.now() + 10 * 60 * 1000),
     verified: false,
   });
@@ -528,6 +529,7 @@ const updateUserRole = asyncHandler(async (req, res) => {
 //Delete user
 const deleteUser = asyncHandler(async (req, res) => {
   const { userId } = req.params;
+
   if (!userId) {
     return res.status(400).json({ message: "User ID is required" });
   }
@@ -537,22 +539,42 @@ const deleteUser = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: "User not found" });
   }
 
-  // Delete avatar if exists
-  if (user.avatar?.public_id) {
-    console.log("Deleting avatar:", user.avatar.public_id);
-    await cloudinary.uploader.destroy(user.avatar.public_id, { invalidate: true });
+  // Utility to extract public_id from a Cloudinary URL
+  const extractPublicId = (url) => {
+    try {
+      const parts = url.split('/upload/')[1]; // e.g., v12345/folder/filename.jpg
+      const withoutExtension = parts.substring(0, parts.lastIndexOf('.')); // Remove extension
+      return withoutExtension;
+    } catch (error) {
+      console.error("Failed to extract public_id from URL:", url);
+      return null;
+    }
+  };
+
+  // Delete avatar if URL exists
+  if (user.avatar?.url) {
+    const publicId = extractPublicId(user.avatar.url);
+    if (publicId) {
+      await cloudinary.uploader.destroy(publicId, { invalidate: true });
+      console.log("Avatar deleted:", publicId);
+    }
   }
 
-  // Delete cover image if exists
-  if (user.coverImage?.public_id) {
-    console.log("Deleting cover image:", user.coverImage.public_id);
-    await cloudinary.uploader.destroy(user.coverImage.public_id, { invalidate: true });
+  // Delete cover image if URL exists
+  if (user.coverImage?.url) {
+    const publicId = extractPublicId(user.coverImage.url);
+    if (publicId) {
+      await cloudinary.uploader.destroy(publicId, { invalidate: true });
+      console.log("Cover image deleted:", publicId);
+    }
   }
 
-  await user.deleteOne();
+  // Delete user from DB
+  await User.findByIdAndDelete(userId);
 
-  res.status(200).json({ message: "User deleted successfully" });
+  res.status(200).json({ message: "User and images deleted successfully" });
 });
+
 
 
 
