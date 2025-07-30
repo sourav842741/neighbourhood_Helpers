@@ -21,7 +21,7 @@ import { isAdmin } from "../middlewares/isAdmin.js";
 
 const router = Router();
 
-// Auth routes
+// ------------------ Auth Routes ------------------
 router.route("/register").post(
   upload.fields([
     { name: "avatar", maxCount: 1 },
@@ -29,28 +29,34 @@ router.route("/register").post(
   ]),
   registerUser
 );
-
 router.route("/login").post(loginUser);
 router.route("/logout").post(verifyJWT, logoutUser);
 router.route("/refresh-token").post(refreshAccessToken);
 
-// User management
-router.route("/change-password").post(verifyJWT, changeCurrentPassword);
+// ------------------ User Profile ------------------
+router.route("/change-password").patch(verifyJWT, changeCurrentPassword);
 router.route("/current-user").get(verifyJWT, getCurrentUser);
 router.route("/update-account").patch(verifyJWT, updateAccountDetails);
 
-// File uploads
-router
-  .route("/avatar")
-  .patch(verifyJWT, upload.single("avatar"), verifyJWT, updateUserAvatar);
-router
-  .route("/cover-image")
-  .patch(verifyJWT, upload.single("coverImage"), verifyJWT, updateUserCoverImage);
+// ✅ ✅ FIXED: File Upload Routes (must match frontend)
+router.route("/update-avatar").patch(
+  verifyJWT,
+  upload.single("avatar"),
+  updateUserAvatar
+);
 
-// Admin/User role management
+router.route("/update-cover").patch(
+  verifyJWT,
+  upload.single("coverImage"),
+  updateUserCoverImage
+);
+
+// ------------------ Admin/User Management ------------------
 router.route("/c/:username").get(isAdmin, getUserById);
 router.route("/update-user-role").patch(isAdmin, updateUserRole);
-router.route("/:id/delete-user").delete(verifyJWT, deleteUser);
+// user.route.js
+router.delete('/:userId/delete-user', deleteUser);
+
 router.route("/team-roles").get(isAdmin, getAllUsersTeamRole);
 
 export default router;

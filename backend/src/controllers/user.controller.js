@@ -7,6 +7,9 @@ import jwt from "jsonwebtoken";
 import { OTP } from "../models/otp.model.js";
 import otpGenerator from "otp-generator";
 import { sendEmail } from "../utils/sendEmail.js";
+import mongoose from "mongoose";
+
+
 
 
 
@@ -368,10 +371,17 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id).select("-password -refreshToken");
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
   return res
     .status(200)
-    .json(new ApiResponse(200, req.user, "User fetched successfully"));
+    .json(new ApiResponse(200, user, "User fetched successfully"));
 });
+
 
 const updateAccountDetails = asyncHandler(async (req, res) => {
   const { fullName, email } = req.body;
@@ -396,28 +406,34 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, user, "Account details updated successfully"));
 });
 
-const updateUserAvatar = asyncHandler(async (req, res) => {
+ const updateUserAvatar = asyncHandler(async (req, res) => {
+  console.log("Received file:", req.file);
+
   const avatarLocalPath = req.file?.path;
 
   if (!avatarLocalPath) {
+    console.error("Avatar file is missing in request");
     throw new ApiError(400, "Avatar file is missing");
   }
 
   const avatar = await uploadOnCloudinary(avatarLocalPath);
+  console.log("Cloudinary upload response:", avatar);
 
-  if (!avatar.url) {
-    throw new ApiError(400, "Error while uploading on avatar");
+  if (!avatar || !avatar.secure_url) {
+    throw new ApiError(400, "Error while uploading avatar to Cloudinary");
   }
 
   const user = await User.findByIdAndUpdate(
     req.user?._id,
     {
       $set: {
-        avatar: avatar.url,
+        avatar: avatar.secure_url,
       },
     },
     { new: true }
   ).select("-password");
+
+  console.log("User after avatar update:", user);
 
   return res
     .status(200)
@@ -511,22 +527,34 @@ const updateUserRole = asyncHandler(async (req, res) => {
 
 //Delete user
 const deleteUser = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw new ApiError(400, "Invalid user ID format");
+  const { userId } = req.params;
+  if (!userId) {
+    return res.status(400).json({ message: "User ID is required" });
   }
 
-  const deletedUser = await User.findByIdAndDelete(id);
-
-  if (!deletedUser) {
-    throw new ApiError(404, "User not found");
+  const user = await User.findById(userId);
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
   }
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, deletedUser, "User deleted successfully"));
+  // Delete avatar if exists
+  if (user.avatar?.public_id) {
+    console.log("Deleting avatar:", user.avatar.public_id);
+    await cloudinary.uploader.destroy(user.avatar.public_id, { invalidate: true });
+  }
+
+  // Delete cover image if exists
+  if (user.coverImage?.public_id) {
+    console.log("Deleting cover image:", user.coverImage.public_id);
+    await cloudinary.uploader.destroy(user.coverImage.public_id, { invalidate: true });
+  }
+
+  await user.deleteOne();
+
+  res.status(200).json({ message: "User deleted successfully" });
 });
+
+
 
 export {
   registerUser,
