@@ -20,9 +20,9 @@ const Home = () => {
   }, []);
 
   return (
-    <>
+    <div className="flex flex-col min-h-screen">
       <Navbar isAdminMode={isAdminMode} />
-      <main className="flex flex-col md:flex-row items-center justify-center min-h-[calc(100vh-10rem)] px-8 py-16 max-w-7xl mx-auto mt-10">
+      <main className="flex flex-col md:flex-row items-center justify-center flex-grow px-8 py-16 max-w-7xl mx-auto mt-10">
         {/* Left side content */}
         <section className="md:w-1/2 space-y-6">
           <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900">
@@ -50,7 +50,7 @@ const Home = () => {
         </section>
       </main>
       <Footer />
-    </>
+    </div>
   );
 };
 

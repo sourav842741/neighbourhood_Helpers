@@ -17,6 +17,7 @@ import AdminDashboard from "./components/AdminDashboard";
 import { useAuth } from "./authContext";
 import UserDashboard from "./components/UserDashboard";
 import UserProfile from "./components/UserProfile";
+import ReportIssue from "./pages/ReportIssue";
 
 const ProjectRoutes = () => {
   const { currentUser, setCurrentUser } = useAuth();
@@ -100,6 +101,7 @@ useEffect(() => {
     { path: "/login", element: <Login /> },
     { path: "/register", element: <Register /> },
     { path: "/verify-otp", element: <OTPVerify /> },
+    { path: "/report", element: <ReportIssue /> },
 
     // Admin
     { path: "/admin/login", element: <AdminLogin /> },

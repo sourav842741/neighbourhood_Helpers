@@ -37,7 +37,7 @@ const UserDashboard = () => {
           {/* Header */}
           <div className="mb-10 text-center">
             <h1 className="text-4xl font-extrabold text-orange-600">Your Dashboard</h1>
-            <p className="text-gray-600 mt-2 text-sm">
+            <p className="text-black mt-2 text-base">
               Track issues, report problems, and manage your neighborhood involvement.
             </p>
           </div>
