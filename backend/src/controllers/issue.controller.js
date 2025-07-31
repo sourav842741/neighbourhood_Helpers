@@ -78,7 +78,7 @@ const generatePDFWithQR = async (issue, user, filePath, qrBuffer) => {
 // Create Issue
 const createIssue = asyncHandler(async (req, res) => {
   const { title, description, languageId, location } = req.body;
-  if (!title || !description || !languageId) {
+  if (!title || !description || !languageId || !location) {
     throw new ApiError(400, "All required fields must be provided");
   }
 
