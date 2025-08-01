@@ -32,7 +32,7 @@ const ReportIssue = () => {
       issuePhotos: null
     });
     
-    e.target.reset();
+    // e.target.reset();
 
     try {
       const data = new FormData();
