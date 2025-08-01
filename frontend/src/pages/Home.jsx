@@ -8,16 +8,17 @@ const Home = () => {
   const [isAdminMode, setIsAdminMode] = useState(false);
 
   // Enable admin mode with secret key: Ctrl + Alt + A
-  useEffect(() => {
-    const handleKeyPress = (e) => {
-      if (e.ctrlKey && e.altKey && e.key.toLowerCase() === 'a') {
-        setIsAdminMode(true);
-      }
-    };
+useEffect(() => {
+  const handleKeyDown = (e) => {
+    if (e.ctrlKey && e.altKey && (e.key === 'a' || e.code === 'KeyA')) {
+      setIsAdminMode(true);
+    }
+  };
 
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, []);
+  document.addEventListener('keydown', handleKeyDown);
+  return () => document.removeEventListener('keydown', handleKeyDown);
+}, []);
+
 
   return (
     <div className="flex flex-col min-h-screen">
