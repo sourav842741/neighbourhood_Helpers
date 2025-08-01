@@ -86,11 +86,11 @@ const createIssue = asyncHandler(async (req, res) => {
   const user = await User.findById(userId);
   if (!user) throw new ApiError(404, "User not found");
 
-  let imageId = "";
+  let image = "";
   if (req.file) {
     const uploadedImage = await uploadOnCloudinary(req.file.path);
     if (!uploadedImage) throw new ApiError(500, "Image upload failed");
-    imageId = uploadedImage.public_id;
+    image = uploadedImage.url;
   }
 
   const issue = await Issue.create({
@@ -98,7 +98,7 @@ const createIssue = asyncHandler(async (req, res) => {
     description,
     languageId,
     location,
-    imageId,
+    image,
     userId,
     status: "reported",
     reportedAt: new Date()

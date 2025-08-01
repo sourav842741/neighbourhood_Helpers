@@ -39,7 +39,7 @@ const issueSchema = new Schema(
       default: "reported",
     },
 
-    imageId: {
+    image: {
       type: String, // Cloudinary public_id or URL
       default: "",
     },
