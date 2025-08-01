@@ -10,7 +10,7 @@ import { isAdmin } from "../middlewares/isAdmin.js";
 const router = express.Router();
 
 router.post("/send", verifyJWT, sendSOSAlert);
-router.get("/all", verifyJWT, isAdmin, getAllSOSAlerts);
-router.patch("/resolve/:alertId", verifyJWT, isAdmin, resolveSOSAlert);
+router.get("/all", isAdmin, getAllSOSAlerts);
+router.patch("/resolve/:alertId",  isAdmin, resolveSOSAlert);
 
 export default router;
