@@ -1,9 +1,9 @@
-// src/components/UserNavbar.jsx
 import React, { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHandshakeAngle } from "@fortawesome/free-solid-svg-icons";
 import { FiChevronDown, FiLogOut } from "react-icons/fi";
+import { FaBell } from "react-icons/fa";
 import { useAuth } from "../authContext";
 import axios from "axios";
 
@@ -13,6 +13,7 @@ const UserNavbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [user, setUser] = useState(null);
   const dropdownRef = useRef(null);
+  const location = useLocation();
 
   // Fetch user on mount
   useEffect(() => {
@@ -67,7 +68,7 @@ const UserNavbar = () => {
         </span>
       </Link>
 
-      {/* Right: Links + Avatar */}
+      {/* Right: Links + SOS + Avatar */}
       <div className="flex items-center space-x-6 text-sm text-gray-900">
         <Link to="/report" className="hover:text-orange-500 font-medium">
           Report Issue
@@ -76,6 +77,18 @@ const UserNavbar = () => {
           Issue Tracker
         </Link>
 
+        {/* SOS Icon */}
+        {location.pathname !== "/sos" && (
+          <Link
+            to="/sos"
+            className="hover:text-red-600 text-lg font-bold transition duration-150"
+            title="Send SOS Alert"
+          >
+            <FaBell className="text-red-600 text-xl animate-bounce hover:scale-110 transition-transform" />
+          </Link>
+        )}
+
+        {/* Avatar Dropdown */}
         {user && (
           <div className="relative" ref={dropdownRef}>
             <button
