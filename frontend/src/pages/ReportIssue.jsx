@@ -19,38 +19,45 @@ const ReportIssue = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // For now, just log the form data
-    console.log(formData);
-
-    alert('Report submitted successfully!');
-
-    setFormData({
-      title: "",
-      languageId: "",
-      description: "",
-      location: "",
-      issuePhotos: null
-    });
     
-    e.target.reset();
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      toast.error("Unauthorized. Please login first.");
+      return;
+    }
 
     try {
       const data = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
-        if (value) data.append(key, value); // 👈 Only append if value exists (skip null)
+        if (value) data.append(key, value);
       });
 
       const res = await axios.post(
         "http://localhost:8000/api/v1/issues",
-        data
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data"
+          }
+        }
       );
 
-      toast.success(res.data.message || "Issue create successful!");
-    
+      toast.success(res.data.message || "Issue reported successfully!");
+
+      // Reset form after successful submission
+      setFormData({
+        title: "",
+        languageId: "",
+        description: "",
+        location: "",
+        issuePhotos: null
+      });
+
+      e.target.reset();
     } catch (err) {
       console.error(err);
-      toast.error(err?.response?.data?.message || "Issue create failed!");
-    } finally {
+      toast.error(err?.response?.data?.message || "Issue creation failed!");
     }
   };
 
@@ -70,10 +77,11 @@ const ReportIssue = () => {
       <main className="flex-grow max-w-4xl mx-auto px-6 py-12 w-full mt-15">
         <h1 className="text-2xl font-semibold mb-6">Report an Issue</h1>
 
-        <form 
-          onSubmit={handleSubmit} 
-          className="space-y-6" 
-          encType="multipart/form-data">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-6"
+          encType="multipart/form-data"
+        >
           {/* Issue Type */}
           <div>
             <label htmlFor="title" className="block mb-2 font-medium text-gray-700">Select Issue Type</label>
@@ -87,9 +95,7 @@ const ReportIssue = () => {
             >
               <option value="" disabled>Select an issue type</option>
               {issueTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
+                <option key={type} value={type}>{type}</option>
               ))}
             </select>
           </div>
@@ -111,7 +117,7 @@ const ReportIssue = () => {
             />
           </div>
 
-          {/* Issue Description */}
+          {/* Description */}
           <div>
             <label htmlFor="description" className="block mb-2 font-medium text-gray-700">
               Issue Description
@@ -128,7 +134,7 @@ const ReportIssue = () => {
             />
           </div>
 
-          {/* Location Details */}
+          {/* Location */}
           <div>
             <label htmlFor="location" className="block mb-2 font-medium text-gray-700">
               Location Details
@@ -145,7 +151,7 @@ const ReportIssue = () => {
             />
           </div>
 
-          {/* Attach Photos */}
+          {/* Photo Upload */}
           <div>
             <label htmlFor="issuePhotos" className="block mb-2 font-medium text-gray-700">
               Attach Photos
@@ -153,16 +159,15 @@ const ReportIssue = () => {
             <input
               id="issuePhotos"
               name='issuePhotos'
-              placeholder='Issue Image'
               type="file"
               accept="image/*"
               multiple
               onChange={handleInputChange}
-              className="w-full rounded-lg border border-gray-300 p-2 text-gray-600 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400"
+              className="w-full rounded-lg border border-gray-300 p-2 text-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-400"
             />
           </div>
 
-          {/* Submit Button */}
+          {/* Submit */}
           <button
             type="submit"
             className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-full font-medium transition"
