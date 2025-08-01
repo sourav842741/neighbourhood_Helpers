@@ -1,19 +1,23 @@
 // src/components/ui/card.jsx
-import React from "react";
-import { cn } from "@/lib/utils";
+import * as React from "react";
 
-export const Card = ({ className, ...props }) => (
-  <div className={cn("rounded-xl border bg-white text-black shadow", className)} {...props} />
-);
+export function Card({ className, ...props }) {
+  return <div className={`rounded-xl border bg-white text-card-foreground shadow ${className}`} {...props} />;
+}
 
-export const CardContent = ({ className, ...props }) => (
-  <div className={cn("p-6 pt-0", className)} {...props} />
-);
+export function CardHeader({ className, ...props }) {
+  return <div className={`flex flex-col space-y-1.5 p-6 ${className}`} {...props} />;
+}
 
-export const CardHeader = ({ className, ...props }) => (
-  <div className={cn("p-6", className)} {...props} />
-);
+export function CardTitle({ className, ...props }) {
+  return <h3 className={`text-2xl font-semibold leading-none tracking-tight ${className}`} {...props} />;
+}
 
-export const CardTitle = ({ className, ...props }) => (
-  <h3 className={cn("text-lg font-semibold", className)} {...props} />
-);
+export function CardContent({ className, ...props }) {
+  return <div className={`p-6 pt-0 ${className}`} {...props} />;
+}
+
+// 🔧 Add this missing export
+export function CardDescription({ className, ...props }) {
+  return <p className={`text-sm text-muted-foreground ${className}`} {...props} />;
+}
