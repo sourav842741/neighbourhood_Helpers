@@ -4,6 +4,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { sendEmail } from "../utils/sendEmail.js";
+import mongoose from "mongoose";
 
 //  Create Event and send email to all users
 export const createEvent = asyncHandler(async (req, res) => {
@@ -20,7 +21,7 @@ export const createEvent = asyncHandler(async (req, res) => {
     location,
     startTime,
     endTime,
-    createdBy,
+   createdBy:  req.admin._id,
   });
 
   // Fetch all user emails
@@ -90,6 +91,12 @@ export const getAllEvents = asyncHandler(async (req, res) => {
 //  Get Single Event
 export const getEventById = asyncHandler(async (req, res) => {
   const { id } = req.params;
+
+  // Validate ID
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new ApiError(400, "Invalid event ID");
+  }
+
   const event = await Event.findById(id).populate("createdBy", "fullName email");
 
   if (!event) {
@@ -98,6 +105,7 @@ export const getEventById = asyncHandler(async (req, res) => {
 
   res.status(200).json(new ApiResponse(200, event, "Event details fetched"));
 });
+
 
 //  Update Event
 export const updateEvent = asyncHandler(async (req, res) => {
@@ -127,9 +135,9 @@ export const deleteEvent = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Event not found");
   }
 
-  if (event.createdBy.toString() !== req.admin?._id.toString()) {
-    throw new ApiError(403, "You are not authorized to delete this event");
-  }
+  // if (event.createdBy.toString() !== req.admin?._id.toString()) {
+  //   throw new ApiError(403, "You are not authorized to delete this event");
+  // }
 
   await event.deleteOne();
 
