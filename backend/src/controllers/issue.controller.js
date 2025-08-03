@@ -86,19 +86,23 @@ const createIssue = asyncHandler(async (req, res) => {
   const user = await User.findById(userId);
   if (!user) throw new ApiError(404, "User not found");
 
-  let image = "";
-  if (req.file) {
-    const uploadedImage = await uploadOnCloudinary(req.file.path);
+  let imageId = [];
+
+if (req.files && req.files.length > 0) {
+  for (const file of req.files) {
+    const uploadedImage = await uploadOnCloudinary(file.path);
     if (!uploadedImage) throw new ApiError(500, "Image upload failed");
-    image = uploadedImage.url;
+    imageId.push(uploadedImage.secure_url);
   }
+}
+
 
   const issue = await Issue.create({
     title,
     description,
     languageId,
     location,
-    image,
+   imageId: imageId,
     userId,
     status: "reported",
     reportedAt: new Date()
@@ -170,6 +174,7 @@ Reported At: ${new Date(issue.reportedAt).toLocaleString()}
   fs.unlink(pdfPath, (err) => {
     if (err) console.error("Failed to delete PDF:", err);
   });
+console.log("Uploaded Image URLs:", imageId);
 
   res.status(201).json(new ApiResponse(201, issue, "Issue reported and emailed successfully"));
 });
@@ -206,21 +211,54 @@ const updateIssue = asyncHandler(async (req, res) => {
     throw new ApiError(403, "You are not authorized to update this issue");
   }
 
-  if (req.file) {
-    if (issue.imageId) {
-      await deleteFromCloudinary(issue.imageId);
+  if (req.files && req.files.length > 0) {
+    if (issue.imageId && issue.imageId.length > 0) {
+      for (const publicId of issue.imageId) {
+        await deleteFromCloudinary(publicId);
+      }
     }
 
-    const uploadedImage = await uploadOnCloudinary(req.file.path);
-    if (!uploadedImage) throw new ApiError(500, "New image upload failed");
-    issue.imageId = uploadedImage.public_id;
+    const uploadedImages = [];
+    for (const file of req.files) {
+      const uploadedImage = await uploadOnCloudinary(file.path);
+      if (!uploadedImage) throw new ApiError(500, "New image upload failed");
+      uploadedImages.push(uploadedImage.public_id);
+    }
+    issue.imageId = uploadedImages;
   }
 
-  Object.assign(issue, req.body);
+  if (!req.body) {
+    throw new ApiError(400, "Request body is missing");
+  }
+
+  const allowedFields = [
+    "title",
+    "description",
+    "status",
+    "location",
+    "translatedTitle",
+    "translatedDescription",
+    "languageId",
+    "upvoteCount",
+    "commentCount",
+  ];
+
+  console.log("Request body:", req.body);
+
+  allowedFields.forEach(field => {
+    if (req.body[field] !== undefined) {
+      issue[field] = req.body[field];
+    }
+  });
+
+  console.log("Issue status before save:", issue.status);
+
   await issue.save();
 
   res.status(200).json(new ApiResponse(200, issue, "Issue updated successfully"));
 });
+
+
 
 // Delete Issue
 const deleteIssue = asyncHandler(async (req, res) => {

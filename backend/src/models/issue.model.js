@@ -18,7 +18,7 @@ const issueSchema = new Schema(
       type: String,
     },
 
-   translatedTitle: {
+    translatedTitle: {
       type: String,
       default: "",
     },
@@ -39,9 +39,9 @@ const issueSchema = new Schema(
       default: "reported",
     },
 
-    image: {
-      type: String, // Cloudinary public_id or URL
-      default: "",
+    imageId: {
+      type: [String],
+      default: [],
     },
 
     location: {

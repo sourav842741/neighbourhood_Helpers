@@ -19,6 +19,7 @@ import UserDashboard from "./components/UserDashboard";
 import UserProfile from "./components/UserProfile";
 import ReportIssue from "./pages/ReportIssue";
 import SOSForm from "./components/SOSForm";
+import IssueTracker from "./components/IssueTracker";
 
 const ProjectRoutes = () => {
   const { currentUser, setCurrentUser } = useAuth();
@@ -111,6 +112,7 @@ useEffect(() => {
     { path: "/user/dashboard", element: currentUser ? <UserDashboard/> : <Login /> },
     { path: "/profile", element: <UserProfile/> },
     { path: "/sos", element: <SOSForm/> },
+    { path: "/issues", element: <IssueTracker/> },
    
     
 

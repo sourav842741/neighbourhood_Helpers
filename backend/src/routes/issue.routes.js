@@ -14,9 +14,9 @@ const router = express.Router();
 // Create Issue with optional image
 router.post("/", verifyJWT, upload.array("issuePhotos", 10), createIssue);
 // Get all issues
-router.get("/", getAllIssues);
+router.get("/all",verifyJWT, getAllIssues);
 // Get single issue
-router.get("/:id", getIssueById);
+router.get("/user/:userId", verifyJWT, getIssueById);
 // Update issue with optional new image
 router.put("/:id", verifyJWT, upload.array("issuePhotos", 10), updateIssue);
 // Delete issue (and its image)
