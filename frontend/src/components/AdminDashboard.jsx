@@ -2,7 +2,7 @@ import React from "react";
 import axios from "axios";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHandshakeAngle } from '@fortawesome/free-solid-svg-icons';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   IconUsers,
   IconFileText,
@@ -11,7 +11,6 @@ import {
   IconPencil,
   IconTrash,
 } from "@tabler/icons-react";
-import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,14 +52,11 @@ const AdminDashboard = () => {
 
   const handleLogout = async () => {
     try {
-      // Call backend logout route
       await axios.post(
         "http://localhost:8000/api/v1/admin/logout",
         {},
         { withCredentials: true }
       );
-
-      // Navigate to home
       navigate("/");
     } catch (error) {
       console.error("Logout failed:", error);
@@ -83,7 +79,7 @@ const AdminDashboard = () => {
             </span>
           </div>
 
-          {/* Right: Profile + Logout */}
+          {/* Right: Profile + Events + Logout */}
           <div className="flex items-center gap-4">
             <Link to="/profile">
               <Button
@@ -93,6 +89,16 @@ const AdminDashboard = () => {
                 Profile
               </Button>
             </Link>
+
+            <Link to="/admin/events">
+              <Button
+                variant="outline"
+                className="text-orange-600 border-orange-300 hover:bg-orange-100"
+              >
+                Events
+              </Button>
+            </Link>
+
             <Button
               onClick={handleLogout}
               className="bg-orange-600 hover:bg-orange-700 text-white"
@@ -103,7 +109,7 @@ const AdminDashboard = () => {
         </div>
       </nav>
 
-      {/* Page content padding */}
+      {/* Page content */}
       <div className="pt-24 px-6">
         <header className="mb-6 text-center">
           <h1 className="text-3xl font-bold text-orange-600">
@@ -149,13 +155,8 @@ const AdminDashboard = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {[
-                { name: "John Doe", email: "john@example.com", role: "Admin" },
-                {
-                  name: "Jane Smith",
-                  email: "jane@example.com",
-                  role: "Editor",
-                },
+              {[{ name: "John Doe", email: "john@example.com", role: "Admin" },
+                { name: "Jane Smith", email: "jane@example.com", role: "Editor" },
               ].map((user, idx) => (
                 <TableRow key={idx}>
                   <TableCell>{user.name}</TableCell>

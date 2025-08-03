@@ -20,6 +20,7 @@ import UserProfile from "./components/UserProfile";
 import ReportIssue from "./pages/ReportIssue";
 import SOSForm from "./components/SOSForm";
 import IssueTracker from "./components/IssueTracker";
+import AdminEvents from "./components/AdminEvents";
 
 const ProjectRoutes = () => {
   const { currentUser, setCurrentUser } = useAuth();
@@ -113,6 +114,7 @@ useEffect(() => {
     { path: "/profile", element: <UserProfile/> },
     { path: "/sos", element: <SOSForm/> },
     { path: "/issues", element: <IssueTracker/> },
+    { path: "/admin/events", element: <AdminEvents/> },
    
     
 
