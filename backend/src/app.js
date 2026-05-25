@@ -1,5 +1,6 @@
 import express from "express"
 import cors from "cors"
+import mongoose from "mongoose"
 import cookieParser from "cookie-parser"
 
 const app = express()
@@ -29,6 +30,32 @@ import adminRoutes from "./routes/admin.routes.js";
 import sosAlertRoutes from "./routes/sosAlert.routes.js";
 import otpRoutes from "./routes/otp.routes.js";
 
+
+app.get("/api/health", async (req, res) => {
+  try {
+
+    if (mongoose.connection.readyState !== 1) {
+      throw new Error("MongoDB not connected");
+    }
+
+    await mongoose.connection.db.admin().ping();
+
+    res.status(200).json({
+      status: "ok",
+      db: "connected",
+      timestamp: new Date().toISOString(),
+    });
+
+  } catch (error) {
+
+    res.status(500).json({
+      status: "error",
+      db: "disconnected",
+      error: error.message,
+    });
+
+  }
+});
 
 
 //routes decleration
